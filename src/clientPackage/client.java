@@ -4,7 +4,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class client { 
+public class client {
 
     public static void main(String[] args) throws Exception
     {
