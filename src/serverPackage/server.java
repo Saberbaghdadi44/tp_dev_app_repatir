@@ -1,43 +1,44 @@
 package serverPackage;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+import sharePackage.Operation;
 
 public class server {
-    public static void main(String[] args) throws Exception
-    {
-        ServerSocket socketServer = new ServerSocket(5000);
-        System.out.println("Je suis un serveur en attente la connexion d'un client ");
-        Socket socket = socketServer.accept();
-        System.out.println("un client est connecté");
-        InputStream is = socket.getInputStream();
-        int operand1 = is.read();
-        int operatorByte = is.read();
-        int operand2 = is.read();
-
-        char operator = (char) operatorByte;
-        System.out.println("Opération reçue: " + operand1 + " " + operator + " " + operand2);
-
-        int result = 0;
-        switch(operator){
-            case '+': result = operand1 + operand2; break;
-            case '-': result = operand1 - operand2; break;
-            case '*': result = operand1 * operand2; break;
-            case '/':
-                if(operand2 != 0) {
-                    result = operand1 / operand2;
-                } else {
-                    result = 0;
+    public static void main(String[] args) throws Exception {
+        ServerSocket socketServer = new ServerSocket(1234);
+        System.out.println("Je suis un serveur en attente de la connexion d'un client...");
+        while (true) {
+            Socket socket = socketServer.accept();
+            System.out.println("Un client est connecté");
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            Operation operation = (Operation) ois.readObject();
+            System.out.println("Opération reçue: " + operation);
+            double result = calculate(operation);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeDouble(result);
+            oos.flush();
+            System.out.println("Résultat envoyé: " + result);
+            socket.close();}}
+    private static double calculate(Operation operation) {
+        double operand1 = operation.getOperand1();
+        double operand2 = operation.getOperand2();
+        String operator = operation.getOperator();
+        switch (operator) {
+            case "+":
+                return operand1 + operand2;
+            case "-":
+                return operand1 - operand2;
+            case "*":
+                return operand1 * operand2;
+            case "/":
+                if (operand2 == 0) {
+                    throw new ArithmeticException("Division par zéro");
                 }
-                break;
+                return operand1 / operand2;
+            default:
+                throw new IllegalArgumentException("Opérateur non supporté: " + operator);
         }
-        OutputStream os = socket.getOutputStream();
-        os.write(result);
-        System.out.println("Résultat envoyé: " + result);
-
-        socket.close();
-        socketServer.close();
     }
 }

@@ -1,34 +1,43 @@
 package clientPackage;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+import sharePackage.Operation;
 
 public class client {
 
-    public static void main(String[] args) throws Exception
-    {
+    public static void main(String[] args) throws Exception {
         System.out.println("Je suis un client pas encore connecté...");
-        Socket socket = new Socket("localhost", 5000);
+        Socket socket = new Socket("localhost", 1234);
         System.out.println("Je suis connecté");
+        Scanner scanner = new Scanner(System.in);
 
-        Scanner s = new Scanner(System.in);
-        System.out.println("donner le premier opérande ");
-        int operand1 = s.nextInt();
-        System.out.println("donner l'opérateur (+, -, *, /) ");
-        char operator = s.next().charAt(0);
-        System.out.println("donner le deuxième opérande ");
-        int operand2 = s.nextInt();
-        OutputStream os = socket.getOutputStream();
-        os.write(operand1);
-        os.write(operator);
-        os.write(operand2);
-        os.flush();
-        InputStream is = socket.getInputStream();
-        int result = is.read();
-        System.out.println("le résultat est " + result);
 
-        s.close();
+        System.out.println("Donner le premier opérande: ");
+        double operand1 = scanner.nextDouble();
+
+        System.out.println("Donner l'opérateur (+, -, *, /): ");
+        String operator = scanner.next();
+
+        System.out.println("Donner le deuxième opérande: ");
+        double operand2 = scanner.nextDouble();
+
+
+        Operation operation = new Operation(operand1, operator, operand2);
+
+
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(operation);
+        oos.flush();
+
+
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        double result = ois.readDouble();
+
+        System.out.println("Le résultat de " + operation + " = " + result);
+
         socket.close();
+        scanner.close();
     }
 }
